@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Latent Semantic Analysis (LSA) Search Engine</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Latent Semantic Analysis (LSA) Search Engine</h1>
+    <input type="text" id="query" placeholder="Enter the content here...">
+    <button id="search">Search</button>
+    <div id="results"></div>
+    <canvas id="barChart"></canvas>
+
+    <script>
+        $(document).ready(function(){
+            $('#search').click(function(){
+                var query = $('#query').val();
+                $.post('/search', {query: query}, function(data){
+                    $('#results').empty();
+                    var docs = data.documents;
+                    var sims = data.similarities;
+                    for(var i=0; i<docs.length; i++){
+                        $('#results').append('<h3>文档 '+(i+1)+' (相似度: '+sims[i].toFixed(4)+')</h3>');
+                        $('#results').append('<p>'+docs[i].substring(0, 500)+'...</p>');
+                    }
+
+                    // 绘制柱状图
+                    var ctx = document.getElementById('barChart').getContext('2d');
+                    var chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['document 1', 'document 2', 'document 3', 'document 4', 'document 5'],
+                            datasets: [{
+                                label: 'Cosine Similarity',
+                                data: sims,
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+                                    }
+                                }]
+                            }
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
